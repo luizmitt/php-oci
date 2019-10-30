@@ -3,7 +3,7 @@
 class OCI 
 {
     protected $oci = null;
-    protected $stmt = null;
+    protected $statement = null;
     protected $errors = [];
 
     const FETCH_BOTH  = OCI_BOTH+OCI_RETURN_NULLS;
@@ -23,66 +23,86 @@ class OCI
         oci_close($this->oci);
     }
 
+    public function commit()
+    {
+        return oci_commit($this->oci);
+    }
+
+    public function rollback()
+    {
+        return oci_rollback($this->oci);
+    }
+
+    public function prepare($sql)
+    {
+        $this->statement = oci_parse($this->oci, $sql);
+        
+        if (!$this->statement) {
+            $this->errors[] = oci_error($this->oci);
+        }
+
+        return $this;
+    }
+
+    public function getVersionClient()
+    {
+        return oci_client_version();
+    }
+    
+    public function getVersionServer()
+    {
+        return oci_server_version($this->oci);
+    }
+
     public function getError()
     {
         return $this->errors;
     }
 
-    public function commit()
+    public function rowCount()
     {
-        oci_commit($this->oci);
-        return $this;
-    }
-
-    public function prepare($sql)
-    {
-        $this->stmt = oci_parse($this->oci, $sql);
-
-        return $this;
-    }
+        return $this->rows ? $this->rows : 0;
+    }    
 
     public function execute()
     {
-        oci_execute($this->stmt);
+         if (!oci_execute($this->statement)) {
+            $this->errors[] = oci_error($this->statement);
+            return false;
+         }
 
-        if ($e = oci_error($this->stmt)) {
-            $this->errors[] = $e;
-        }
-        
-        return $this;
+         return true;
     }
 
     public function fetch($fetch_mode = self::FETCH_ASSOC)
     {
-        $data[] = oci_fetch_array($this->stmt, $fetch_mode);
-        oci_free_statement($this->stmt);
+        $data[] = oci_fetch_array($this->statement, $fetch_mode);
+        oci_free_statement($this->statement);
         $this->rows = count($data);
         return $data[0];
     }
 
     public function fetchAll($fetch_mode = self::FETCH_ASSOC)
     {
-        while( ($data[] = oci_fetch_array($this->stmt, $fetch_mode)) != false);
-        oci_free_statement($this->stmt);
+        while( ($data[] = oci_fetch_array($this->statement, $fetch_mode)) != false);
+        oci_free_statement($this->statement);
         array_pop($data);
         $this->rows = count($data);
         return $data;
-    }
-
-    public function rowsCount()
-    {
-        return $this->rows ? $this->rows : 0;
     }
 }
 
 $oci = new OCI("LUIZ_SCHMITT", "123456", "curuduri:1521/pmmdev");
 
+$sth = $oci->prepare("DELETE FROM LUIZ_SCHMITT.FORTEST");
+$sth->execute();
 
-$stmt = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST")
-            ->execute()
-            ->fetchAll();
 
-$stmt = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('AAAA')")
-            ->execute();
+$sth = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST");
+$error = $sth->execute();
+$retorno = $sth->fetchAll();
 
-var_dump($stmt);
+$sth = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('AAAA')");
+$sth->execute();
+
+var_dump($oci->getError());
