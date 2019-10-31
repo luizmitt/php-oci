@@ -1,6 +1,6 @@
 <?php
 
-class OCI 
+class OCI
 {
     protected $oci = null;
     protected $statement = null;
@@ -36,7 +36,7 @@ class OCI
     public function prepare($sql)
     {
         $this->statement = oci_parse($this->oci, $sql);
-        
+
         if (!$this->statement) {
             $this->errors[] = oci_error($this->oci);
         }
@@ -48,7 +48,7 @@ class OCI
     {
         return oci_client_version();
     }
-    
+
     public function getVersionServer()
     {
         return oci_server_version($this->oci);
@@ -62,16 +62,16 @@ class OCI
     public function rowCount()
     {
         return $this->rows ? $this->rows : 0;
-    }    
+    }
 
     public function execute()
     {
-         if (!oci_execute($this->statement)) {
+        if (!oci_execute($this->statement)) {
             $this->errors[] = oci_error($this->statement);
             return false;
-         }
+        }
 
-         return true;
+        return true;
     }
 
     public function fetch($fetch_mode = self::FETCH_ASSOC)
@@ -89,6 +89,44 @@ class OCI
         array_pop($data);
         $this->rows = count($data);
         return $data;
+    }
+
+    public function find($table, $fields = '*', $where = null)
+    {
+        if (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
+
+        if (is_array($where)) {
+            foreach ($where as $field => $value) {
+                $field = addslashes($field);
+                $value = addslashes($value);
+
+                $condition[] = " $field LIKE '$value' ";
+            }
+
+            $where = implode(' AND ', $condition);
+        }
+
+        $sth = $this->prepare("SELECT {$fields} FROM {$table} $where");
+        $sth->execute();
+
+        return $sth->fetchAll();
+    }
+
+    protected function prepareColumns($columns)
+    {
+
+    }
+
+    protected function prepareFields($fields)
+    {
+
+    }
+
+    protected function prepareConditions($conditions)
+    {
+
     }
 }
 
