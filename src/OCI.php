@@ -1,18 +1,40 @@
 <?php
+/* Classe OCI
+ *
+ * Uma classe OCI para manipulação das funções OCI8 do PHP.
+ * 
+ * Author Luiz Schmitt <lzschmitt@gmail.com>
+ *
+ * Baseado na documentação do OCI no PHP.net
+ *
+ * Documentação: <https://www.php.net/manual/en/ref.oci8.php>
+ * 
+ */
 
 class OCI
 {
-    protected $oci = null;
+    protected $oci       = null;
     protected $statement = null;
-    protected $errors = [];
+    protected $errors    = [];
+    protected $history   = [];
+
+    protected $database = null;
 
     const FETCH_BOTH  = OCI_BOTH+OCI_RETURN_NULLS;
     const FETCH_ASSOC = OCI_ASSOC+OCI_RETURN_NULLS;
     const FETCH_NUM   = OCI_NUM+OCI_RETURN_NULLS;
     const FETCH_LOBS  = OCI_ASSOC+OCI_RETURN_LOBS;
 
+    const TYPE_VARCHAR  = SQLT_CHR;
+    const TYPE_INT      = SQLT_INT;
+    const TYPE_LONG     = SQLT_LNG;
+    const TYPE_LONG2    = SQLT_LBI;
+    const TYPE_BOOL     = SQLT_BOL; 
+
     public function __construct($username, $password, $connection_string, $character_set = 'utf8', $session_mode = OCI_DEFAULT)
     {
+        $this->database = $connection_string;
+
         if (!$this->oci = oci_connect($username, $password, $connection_string, $character_set, $session_mode)) {
             $this->errors[] = oci_error();
         }
@@ -54,9 +76,52 @@ class OCI
         return oci_server_version($this->oci);
     }
 
+    public function changePassword($username, $password, $new_password, $database = null)
+    {
+        if (is_null($database)) {
+            $database = $this->database;
+        }
+
+        $oci = oci_pconnect($username, $password, $database);
+        if (!$oci) {
+            $m = oci_error();
+            $this->errors[] = oci_error();
+
+            // "ORA-28001: the password has expired"
+            if ($m['code'] == 28001) { 
+                $oci = oci_password_change($database, $username, $password, $new_password);
+                if ($oci) {
+                    return true;
+                }
+            }
+        }
+
+        // The original error wasn't 28001, or the password change failed
+        if (!$oci) {  
+            $this->errors[] = oci_error();
+        }        
+
+        return false;
+    }
+
+    public function bindValue($key, $value, $size = -1, $type = self::TYPE_VARCHAR)
+    {
+        return oci_bind_by_name($this->statement, $key, $value, $size, $type);
+    }
+
     public function getError()
     {
         return $this->errors;
+    }
+
+    public function getHistory()
+    {
+        return $this->history;
+    }
+
+    protected function setHistory($data)
+    {
+        $this->history[] = $data;
     }
 
     public function rowCount()
@@ -93,54 +158,141 @@ class OCI
 
     public function find($table, $fields = '*', $where = null)
     {
-        if (is_array($fields)) {
-            $fields = implode(',', $fields);
-        }
+        $fields = $this->prepareColumns($fields);
+        $where  = $this->prepareConditions($where);
 
-        if (is_array($where)) {
-            foreach ($where as $field => $value) {
-                $field = addslashes($field);
-                $value = addslashes($value);
+        $sql = trim("SELECT {$fields} FROM {$table} $where");
 
-                $condition[] = " $field LIKE '$value' ";
-            }
-
-            $where = implode(' AND ', $condition);
-        }
-
-        $sth = $this->prepare("SELECT {$fields} FROM {$table} $where");
+        $sth = $this->prepare($sql);
         $sth->execute();
+
+        $this->setHistory($sql);
 
         return $sth->fetchAll();
     }
 
-    protected function prepareColumns($columns)
+    public function findOne($table, $fields = '*', $where = null)
     {
+        $data = $this->find($table, $fields, $where)[0];
+        $this->rows = 1;
 
+        return $data;
     }
 
-    protected function prepareFields($fields)
+    public function delete($table, $conditions = null)
     {
+        $conditions = $this->prepareConditions($conditions);
 
+        $sql = trim("DELETE FROM {$table} {$conditions}");
+        $this->setHistory($sql);
+
+        $sth = $this->prepare($sql);
+        return $sth->execute();
     }
 
-    protected function prepareConditions($conditions)
+    public function insert($table, $data)
     {
+        $fields = implode(',', array_keys($data));
+        $values = ':'.implode(',:', array_keys($data));
 
+        $sql = trim("INSERT INTO {$table} ($fields) VALUES ($values) ");
+
+        $sth = $this->prepare($sql);
+        
+        $this->prepareFields($data, $sql);
+
+        return $sth->execute();
+    }
+
+    public function update($table, $data, $where = null)
+    {
+        $where = $this->prepareConditions($where);
+
+        foreach ($data as $field => $value) {
+            $settings[] = " {$field} = :{$field} ";
+        }
+
+        $settings = implode(',', $settings);
+
+        $sql = trim("UPDATE {$table} SET $settings $where");
+        $sth = $this->prepare($sql);
+
+        $this->prepareFields($data, $sql);
+
+        return $sth->execute();
+    }
+
+    protected function prepareColumns($fields)
+    {
+        if (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
+
+        return $fields;
+    }
+
+    protected function prepareFields($data, $sql = null)
+    {
+        foreach ($data as $field => $value) {
+            $this->bindValue(":$field", $value, strlen($value));
+            $sql = str_replace(":$field", "'$value'", $sql);
+        }
+
+        $this->setHistory($sql);
+
+        return $data;
+    }
+
+    protected function prepareConditions($conditions, $force = false)
+    {
+        if (is_array($conditions)) {
+            foreach ($conditions as $field => $value) {
+
+                $field = addslashes($field);
+                $value = addslashes($value);
+
+                $sign = ($force) ? ' = ' : ' LIKE ';
+
+                $condition[] = " $field $sign '$value' ";
+            }
+
+            $conditions = " WHERE " . implode(' AND ', $condition);
+        }
+
+        return $conditions;
     }
 }
 
+
+// PLAYGROUND
+
 $oci = new OCI("LUIZ_SCHMITT", "123456", "curuduri:1521/pmmdev");
 
-$sth = $oci->prepare("DELETE FROM LUIZ_SCHMITT.FORTEST");
-$sth->execute();
+$oci->delete("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1]);
+
+// $sth = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('RODRIGO_CABRAL')");
+// $sth->execute();
+
+// $sth = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST");
+// $error = $sth->execute();
+// $retorno = $sth->fetchAll();
+
+for ($i = 1; $i <= 4000; $i++) {
+    $array[] = 'A';
+}
+
+$array = implode('', $array);
+
+var_dump($oci->insert("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1, 'TX_TESTE' => $array]));
+var_dump($oci->update("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 2], ['ID_TESTE' => 1]));
 
 
-$sth = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST");
-$error = $sth->execute();
-$retorno = $sth->fetchAll();
+$retorno = $oci->find("LUIZ_SCHMITT.FORTEST");
+$linhas = $oci->rowCount();
 
-$sth = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('AAAA')");
-$sth->execute();
-
+echo '<pre>';
+var_dump($retorno, $linhas);
 var_dump($oci->getError());
+var_dump($oci->getHistory());
+
+
