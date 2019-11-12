@@ -179,6 +179,14 @@ class OCI
         return $data;
     }
 
+    public function f_g_pk($table, $params = null)
+    {
+        $sth = $this->prepare("SELECT $table($params) AS FGPK FROM DUAL");
+        $sth->execute();
+
+        return $sth->fetch()['FGPK'];
+    }
+
     public function delete($table, $conditions = null)
     {
         $conditions = $this->prepareConditions($conditions);
@@ -266,33 +274,33 @@ class OCI
 
 // PLAYGROUND
 
-$oci = new OCI("LUIZ_SCHMITT", "123456", "curuduri:1521/pmmdev");
+// $oci = new OCI("LUIZ_SCHMITT", "123456", "curuduri:1521/pmmdev");
 
-$oci->delete("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1]);
+// $oci->delete("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1]);
 
-// $sth = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('RODRIGO_CABRAL')");
-// $sth->execute();
+// // $sth = $oci->prepare("INSERT INTO LUIZ_SCHMITT.FORTEST (TX_TESTE) VALUES ('RODRIGO_CABRAL')");
+// // $sth->execute();
 
-// $sth = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST");
-// $error = $sth->execute();
-// $retorno = $sth->fetchAll();
+// // $sth = $oci->prepare("SELECT * FROM LUIZ_SCHMITT.FORTEST");
+// // $error = $sth->execute();
+// // $retorno = $sth->fetchAll();
 
-for ($i = 1; $i <= 4000; $i++) {
-    $array[] = 'A';
-}
+// for ($i = 1; $i <= 4000; $i++) {
+//     $array[] = 'A';
+// }
 
-$array = implode('', $array);
+// $array = implode('', $array);
 
-var_dump($oci->insert("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1, 'TX_TESTE' => $array]));
-var_dump($oci->update("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 2], ['ID_TESTE' => 1]));
+// var_dump($oci->insert("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 1, 'TX_TESTE' => $array]));
+// var_dump($oci->update("LUIZ_SCHMITT.FORTEST", ['ID_TESTE' => 2], ['ID_TESTE' => 1]));
 
 
-$retorno = $oci->find("LUIZ_SCHMITT.FORTEST");
-$linhas = $oci->rowCount();
+// $retorno = $oci->find("LUIZ_SCHMITT.FORTEST");
+// $linhas = $oci->rowCount();
 
-echo '<pre>';
-var_dump($retorno, $linhas);
-var_dump($oci->getError());
-var_dump($oci->getHistory());
+// echo '<pre>';
+// var_dump($retorno, $linhas);
+// var_dump($oci->getError());
+// var_dump($oci->getHistory());
 
 
