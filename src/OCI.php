@@ -179,12 +179,12 @@ class OCI
         return $data;
     }
 
-    public function f_g_pk($table, $params = null)
+    public function f_g($table, $params = null)
     {
-        $sth = $this->prepare("SELECT $table($params) AS FGPK FROM DUAL");
+        $sth = $this->prepare("SELECT $table($params) AS V_OUTPUT FROM DUAL");
         $sth->execute();
 
-        return $sth->fetch()['FGPK'];
+        return $sth->fetch()['V_OUTPUT'];
     }
 
     public function delete($table, $conditions = null)
