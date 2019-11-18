@@ -106,6 +106,24 @@ class OCI
 
     public function bindValue($key, $value, $size = -1, $type = self::TYPE_VARCHAR)
     {
+        switch(true) {
+            case is_bool($value):
+                $type = self::TYPE_BOOL;
+            break;
+
+            case is_numeric($value):
+                $type = self::TYPE_INT;
+            break;
+
+            case is_string($value):
+                $size = strlen($value);
+                $type = self::TYPE_VARCHAR;
+            break;
+
+            default:
+                $type = self::TYPE_VARCHAR;
+        }
+
         return oci_bind_by_name($this->statement, $key, $value, $size, $type);
     }
 
