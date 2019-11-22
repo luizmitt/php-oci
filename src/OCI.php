@@ -2,13 +2,13 @@
 /* Classe OCI
  *
  * Uma classe OCI para manipulação das funções OCI8 do PHP.
- * 
+ *
  * Author Luiz Schmitt <lzschmitt@gmail.com>
  *
  * Baseado na documentação do OCI no PHP.net
  *
  * Documentação: <https://www.php.net/manual/en/ref.oci8.php>
- * 
+ *
  */
 
 class OCI
@@ -29,13 +29,20 @@ class OCI
     const TYPE_INT      = SQLT_INT;
     const TYPE_LONG     = SQLT_LNG;
     const TYPE_LONG2    = SQLT_LBI;
-    const TYPE_BOOL     = SQLT_BOL; 
+    const TYPE_BOOL     = SQLT_BOL;
 
-    public function __construct($username, $password, $connection_string, $character_set = 'utf8', $session_mode = OCI_DEFAULT)
+    public function __construct($username, $password, $connection_string, $options = [])
     {
+        $defaultOptions = [
+            'character_set' => 'utf8',
+            'session_mode'  => OCI_DEFAULT
+        ];
+
+        $options = array_merge($defaultOptions, $options);
+
         $this->database = $connection_string;
 
-        if (!$this->oci = oci_connect($username, $password, $connection_string, $character_set, $session_mode)) {
+        if (!$this->oci = oci_connect($username, $password, $connection_string, $options['character_set'], $options['session_mode'])) {
             $this->errors[] = oci_error();
         }
     }
@@ -97,9 +104,9 @@ class OCI
         }
 
         // The original error wasn't 28001, or the password change failed
-        if (!$oci) {  
+        if (!$oci) {
             $this->errors[] = oci_error();
-        }        
+        }
 
         return false;
     }
@@ -162,6 +169,7 @@ class OCI
         $data[] = oci_fetch_array($this->statement, $fetch_mode);
         oci_free_statement($this->statement);
         $this->rows = count($data);
+
         return $data[0];
     }
 
@@ -171,7 +179,16 @@ class OCI
         oci_free_statement($this->statement);
         array_pop($data);
         $this->rows = count($data);
+
         return $data;
+    }
+
+    public function query($sql, $fetch_mode = self::FETCH_ASSOC)
+    {
+        $sth = $this->prepare($sql);
+        $sth->execute();
+        //verificar se houve erro
+        return $sth->fetchAll($fetch_mode);
     }
 
     public function find($table, $fields = '*', $where = null)
