@@ -40,25 +40,25 @@ public function update($table, $data, $where = null);
 
 # Detalhes
 
-- **OCI::__construct** - Cria a instancia OCI onde representa a conexão com o banco de dados Oracle.
-- **OCI::prepare** - recebe uma sql onde será executada posteriormente
-- **OCI::execute** - executa uma sql
-- **OCI::commit** - faz um commit da sessão atual
-- **OCI::rollback** - faz um rollback da sessão atual
-- **OCI::fetch** - retorna apenas o primeiro registro de uma consulta
-- **OCI::fetchAll** - retorna todos os registros de uma consulta
-- **OCI::rowCount** - informa quantas linhas retornou a ultima consulta
-- **OCI::getVersionCliente** - informa a versão do instantclient do cliente
-- **OCI::getVersionServer** - informa a versão do Oracle do servidor
-- **OCI::changePassword** - altera a senha do usuário informado
-- **OCI::getError** - informa se ocorreu algum erro
-- **OCI::getHistory** - mostra todas as queries que foram executadas na sessão
-- **OCI::query** - executa uma query retornando os registros da consulta
-- **OCI::find** - faz uma consulta rapida em uma tabela, mostra todos os registros
-- **OCI::findOne** - faz um consulta rapida em uma tabela, tras apenas um registro
-- **OCI::delete** - deleta informações de uma tabela
-- **OCI::insert** - adiciona uma informação em uma tabela
-- **OCI::update** - edita uma informação em uma tabela
+- __OCI::__construct__ - Cria a instancia OCI onde representa a conexão com o banco de dados Oracle.
+- __OCI::prepare__ - recebe uma sql onde será executada posteriormente
+- __OCI::execute__ - executa uma sql
+- __OCI::commit__ - faz um commit da sessão atual
+- __OCI::rollback__ - faz um rollback da sessão atual
+- __OCI::fetch__ - retorna apenas o primeiro registro de uma consulta
+- __OCI::fetchAll__ - retorna todos os registros de uma consulta
+- __OCI::rowCount__ - informa quantas linhas retornou a ultima consulta
+- __OCI::getVersionCliente__ - informa a versão do instantclient do cliente
+- __OCI::getVersionServer__ - informa a versão do Oracle do servidor
+- __OCI::changePassword__ - altera a senha do usuário informado
+- __OCI::getError__ - informa se ocorreu algum erro
+- __OCI::getHistory__ - mostra todas as queries que foram executadas na sessão
+- __OCI::query__ - executa uma query retornando os registros da consulta
+- __OCI::find__ - faz uma consulta rapida em uma tabela, mostra todos os registros
+- __OCI::findOne__ - faz um consulta rapida em uma tabela, tras apenas um registro
+- __OCI::delete__ - deleta informações de uma tabela
+- __OCI::insert__ - adiciona uma informação em uma tabela
+- __OCI::update__ - edita uma informação em uma tabela
 
 # Exemplos
 
@@ -73,14 +73,14 @@ tabela de exemplo:
 ....
 ```
 
-Criar uma **instancia de conexão** com o banco
+Criar uma __instancia de conexão__ com o banco
 ```php
     require_once __DIR__ . '/OCI.php';
 
     $oci = new OCI("DBUSER", "DBPASS", "localhost:1521/xe");
 ```
 
-Consultar os dados da tabela usuario com **find**
+Consultar os dados da tabela usuario com __find__
 ```php
     $dados = $oci->find("USUARIO");
 
@@ -91,7 +91,7 @@ Consultar os dados da tabela usuario com **find**
     var_dump($dados);
 ```
 
-Consultar os dados da tabela usuario com **findOne**
+Consultar os dados da tabela usuario com __findOne__
 ```php
     $dados = $oci->findOne("USUARIO");
 
@@ -102,7 +102,7 @@ Consultar os dados da tabela usuario com **findOne**
     var_dump($dados);
 ```
 
-Consultar os dados da tabela usuario com **query**
+Consultar os dados da tabela usuario com __query__
 ```php
     $dados = $oci->query("SELECT * FROM USUARIO");
     echo "Olá {$dados['username']}";
@@ -113,7 +113,7 @@ Consultar os dados da tabela usuario com **query**
     echo "Olá {$dados->username}";
 ```
 
-Consultar dados da tabela usuario com **prepare**
+Consultar dados da tabela usuario com __prepare__
 ```php
     $sth = $oci->prepare("SELECT * FROM USUARIO");
     $sth->execute();
