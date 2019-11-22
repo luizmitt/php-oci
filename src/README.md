@@ -40,25 +40,25 @@ public function update($table, $data, $where = null);
 
 # Detalhes
 
-- *OCI::__construct* - Cria a instancia OCI onde representa a conexão com o banco de dados Oracle.
-- *OCI::prepare* - recebe uma sql onde será executada posteriormente
-- *OCI::execute* - executa uma sql
-- *OCI::commit* - faz um commit da sessão atual
-- *OCI::rollback* - faz um rollback da sessão atual
-- *OCI::fetch* - retorna apenas o primeiro registro de uma consulta
-- *OCI::fetchAll* - retorna todos os registros de uma consulta
-- *OCI::rowCount* - informa quantas linhas retornou a ultima consulta
-- *OCI::getVersionCliente* - informa a versão do instantclient do cliente
-- *OCI::getVersionServer* - informa a versão do Oracle do servidor
-- *OCI::changePassword* - altera a senha do usuário informado
-- *OCI::getError* - informa se ocorreu algum erro
-- *OCI::getHistory* - mostra todas as queries que foram executadas na sessão
-- *OCI::query* - executa uma query retornando os registros da consulta
-- *OCI::find* - faz uma consulta rapida em uma tabela, mostra todos os registros
-- *OCI::findOne* - faz um consulta rapida em uma tabela, tras apenas um registro
-- *OCI::delete* - deleta informações de uma tabela
-- *OCI::insert* - adiciona uma informação em uma tabela
-- *OCI::update* - edita uma informação em uma tabela
+- **OCI::__construct** - Cria a instancia OCI onde representa a conexão com o banco de dados Oracle.
+- **OCI::prepare** - recebe uma sql onde será executada posteriormente
+- **OCI::execute** - executa uma sql
+- **OCI::commit** - faz um commit da sessão atual
+- **OCI::rollback** - faz um rollback da sessão atual
+- **OCI::fetch** - retorna apenas o primeiro registro de uma consulta
+- **OCI::fetchAll** - retorna todos os registros de uma consulta
+- **OCI::rowCount** - informa quantas linhas retornou a ultima consulta
+- **OCI::getVersionCliente** - informa a versão do instantclient do cliente
+- **OCI::getVersionServer** - informa a versão do Oracle do servidor
+- **OCI::changePassword** - altera a senha do usuário informado
+- **OCI::getError** - informa se ocorreu algum erro
+- **OCI::getHistory** - mostra todas as queries que foram executadas na sessão
+- **OCI::query** - executa uma query retornando os registros da consulta
+- **OCI::find** - faz uma consulta rapida em uma tabela, mostra todos os registros
+- **OCI::findOne** - faz um consulta rapida em uma tabela, tras apenas um registro
+- **OCI::delete** - deleta informações de uma tabela
+- **OCI::insert** - adiciona uma informação em uma tabela
+- **OCI::update** - edita uma informação em uma tabela
 
 # Exemplos
 
