@@ -59,6 +59,15 @@ public function update($table, $data, $where = null);
 - **OCI::delete** - deleta informações de uma tabela
 - **OCI::insert** - adiciona uma informação em uma tabela
 - **OCI::update** - edita uma informação em uma tabela
+- **OCI::call** - chama uma procedure ou função
+
+## Tipos de Fetch
+
+- **OCI::FETCH_BOTH** - retorno numerico (indice) com array
+- **OCI::FETCH_ASSOC** - apenas retorno em array
+- **OCI::FETCH_NUM** - apenas retorno numerico (indice)
+- **OCI::FETCH_LOBS** - retorno em array com lobs (caso exista)
+- **OCI::FETCH_OBJ** - retorno em objeto
 
 # Exemplos
 
@@ -77,7 +86,7 @@ Criar uma **instancia de conexão** com o banco
 ```php
     require_once __DIR__ . '/OCI.php';
 
-    $oci = new OCI("DBUSER", "DBPASS", "localhost:1521/xe");
+    $oci = new \Lz\PHP\OCI("DBUSER", "DBPASS", "localhost:1521/xe");
 ```
 
 Consultar os dados da tabela usuario com **find**
@@ -133,4 +142,69 @@ Consultar dados da tabela usuario com **prepare**
     $dados = $sth->fetchAll();
 
     var_dump($dados);
+```
+
+Deletar dados da tabela usuario com **prepare** e **delete**
+```php
+    $sth = $oci->prepare("DELETE FROM USUARIO WHERE id = :id");
+    $sth->bindValue(":id", 1);
+    $sth->execute();
+
+    // OR
+
+    $oci->delete("USUARIO", ['id' => 1]);
+```
+
+Inserir dados na tabela usuario com **prepare** e **insert**
+```php
+    $sth = $oci->prepare("INSERT INTO USUARIO (id, username, password) VALUES (:id, :username, :password)");
+    $sth->bindValue(":id", 2);
+    $sth->bindValue(":username", "usuario2");
+    $sth->bindValue(":password", "password2");
+    $sth->execute();
+
+    // OR
+
+    $oci->insert("USUARIO", [
+        "id" => 2,
+        "username" => "usuario2",
+        "password" => "password2"
+    ]);
+```
+
+Atualizar dados na tabela usuario com **prepare** e **update**
+```php
+    $sth = $oci->prepare("UPDATE USUARIO SET password=:password WHERE id=:id");
+    $sth->bindValue(":password", "outraSenha");
+    $sth->bindValue(":id", 1);
+    $sth->execute();
+
+    // OR
+
+    $oci->update("USUARIO", 
+    [
+        "password" => "outraSenha"
+    ], 
+    [
+        "id" => 1
+    ]);
+```
+
+Verificando Erros com **getError()**
+```php
+    $sth = $oci->prepare("DELETE FROM USUARIO WHERE id = :id");
+    $sth->bindValue(":id", 1);
+    $sth->execute();
+
+    if ($error = $sth->getError()) {
+        var_dump($error);
+    }
+
+    // OR
+
+    $oci->delete("USUARIO", ['id' => 1]);
+
+    if ($error = $oci->getError()) {
+        var_dump($error);
+    }    
 ```

@@ -11,6 +11,8 @@
  *
  */
 
+namespace Lz\PHP;
+
 class OCI
 {
     protected $oci       = null;
