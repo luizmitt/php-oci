@@ -11,9 +11,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "Lz\\":"src"
+            " Lz\\PHP":"src"
         }
     },    
-    "require": {},
-    "minimum-stability": "dev"
+    "require": {}
 }
