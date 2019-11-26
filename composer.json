@@ -9,11 +9,11 @@
             "email": "lzschmitt@gmail.com"
         }
     ],
-    "require": {},
     "autoload": {
         "psr-4": {
-            "":"src"
+            "Lz\\":"src"
         }
-    },
+    },    
+    "require": {},
     "minimum-stability": "dev"
 }
